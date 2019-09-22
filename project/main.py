@@ -30,7 +30,12 @@ if __name__ == '__main__':
     with open(args.train_params, "r") as f:
         train_params = json.load(f)
 
-    train_loader = MyCoco(root = train_path, annFile = train_annotation_path, transforms = )
-    test_loader = MyCoco(root = test_path, annFile = test_annotation_path, transforms = )
+    # Import Dataset
+    train_dataset = MyCoco(root = train_path, annFile = train_annotation_path, transforms = )
+    test_dataset= MyCoco(root = test_path, annFile = test_annotation_path, transforms = )
+
+    # Import Dataloader
+    train_loader = DataLoader(train_dataset, shuffle=True, batch_size=train_params['batch_size'])
+    test_loader = DataLoader(test_dataset, shuffle=True, batch_size=train_params['batch_size'])
 
     train(train_params, model_params, train_loader, test_loader)
