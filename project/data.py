@@ -23,6 +23,7 @@ class MyCoco(Dataset):
         from pycocotools.coco import COCO
         self.coco = COCO(annFile)
         self.ids = list(sorted(self.coco.imgs.keys()))
+        self.transforms = transforms
 
     def __getitem__(self, index):
         """
