@@ -7,7 +7,6 @@ import torchvision.datasets as dataset
 from train import train
 from data import MyCoco
 from models import *
-from val_grader.tests import downsample
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -25,17 +24,22 @@ if __name__ == '__main__':
     else:
         args.device = torch.device('cpu')
 
+    '''
     with open(args.model_params, "r") as f:
         model_params = json.load(f)
     with open(args.train_params, "r") as f:
         train_params = json.load(f)
 
+    '''
+
     # Import Dataset
-    train_dataset = MyCoco(root = train_path, annFile = train_annotation_path, transforms = )
-    test_dataset= MyCoco(root = test_path, annFile = test_annotation_path, transforms = )
+    #train_dataset = MyCoco(root = train_path, annFile = train_annotation_path, transforms = )
+    #est_dataset= MyCoco(root = test_path, annFile = test_annotation_path, transforms = )
 
     # Import Dataloader
-    train_loader = DataLoader(train_dataset, shuffle=True, batch_size=train_params['batch_size'])
-    test_loader = DataLoader(test_dataset, shuffle=True, batch_size=train_params['batch_size'])
+    #train_loader = DataLoader(train_dataset, shuffle=True, batch_size=train_params['batch_size'])
+    #test_loader = DataLoader(test_dataset, shuffle=True, batch_size=train_params['batch_size'])
 
-    train(train_params, model_params, train_loader, test_loader)
+    train_params = {'epochs': 1, 'lr':0.001}
+    model_params = {'feat_layer':'relu2_2'}
+    train(train_params, model_params, args, train_loader=None, test_loader=None)

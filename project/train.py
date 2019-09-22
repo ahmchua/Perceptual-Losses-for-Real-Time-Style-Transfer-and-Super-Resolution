@@ -3,21 +3,43 @@ import torch.nn as nn
 from torch.optim import Adam
 import torchvision.models as models
 import numpy as np
+from models import SRCNN, loss_net
+import os
+import torchvision.transforms as transforms
+from PIL import Image
 
-def train(train_params, model_params, train_loader, test_loader):
-    super_resolver = model(model_params).to(args.device)
-    feat = loss_net()
+def upsample(img, factor):
+    w, h = img.size
+    return img.resize((int(w*factor), int(h*factor)))
+
+def downsample(img, factor=4.0):
+    return upsample(img, 1./factor)
+
+def train(train_params, model_params, args, train_loader, test_loader):
+    super_resolver = SRCNN().to(args.device)
+    feat = loss_net().to(args.device)
     feat_layer = model_params['feat_layer']
 
     optimizer = Adam(super_resolver.parameters(), lr = train_params['lr'])
     mse_loss = nn.MSELoss()
+    img_list = os.listdir('./train2017/')
+    image_to_tensor = transforms.ToTensor()
+    p = transforms.Compose([transforms.Resize((256,256))])
 
     for epoch in range(train_params['epochs']):
         super_resolver.train()
         epoch_loss = 0
-        for batch_num, sample_x, sample_y in enumerate(train_loader):
-            sample_x = sample_x.to(args.device)
-            sample_y = sample_y.to(args.device)
+        #for batch_num, sample_x, sample_y in enumerate(train_loader):
+        for img in img_list:
+
+            sample_y = p(Image.open('./train2017/'+img))
+            sample_x = downsample(sample_y)
+
+            sample_y = image_to_tensor(sample_y).to(args.device)
+            sample_x = image_to_tensor(sample_x).to(args.device)
+
+            #sample_x = sample_x.to(args.device)
+            #sample_y = sample_y.to(args.device)
 
             optimizer.zero_grad()
 
