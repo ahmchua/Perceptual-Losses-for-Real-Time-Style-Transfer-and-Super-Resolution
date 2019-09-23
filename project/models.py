@@ -40,3 +40,44 @@ class loss_net(nn.Module):
             if name in self.layer_map:
                 out[self.layer_map[name]] = x
         return out
+
+class SRResnet(nn.Module):
+    def __init__(self):
+        super(SRResnet, self).__init__()
+        self.relu = nn.ReLU()
+        self.conv1 = nn.Conv2d(3,64,kernel_size=9, stride=1, padding=4)
+        self.b1 = nn.BatchNorm2d(64)
+        self.res1 = ResidualBlock(64)
+        self.res2 = ResidualBlock(64)
+        self.res3 = ResidualBlock(64)
+        self.res4 = ResidualBlock(64)
+        self.conv2 = nn.ConvTranspose2d(in_channels=64, out_channels=64, kernel_size=2, stride=2, padding=0)
+        self.b2 = nn.BatchNorm2d(64)
+        self.conv3 = nn.ConvTranspose2d(in_channels=64, out_channels=64, kernel_size=2, stride=2, padding=0)
+        self.b3 = nn.BatchNorm2d(64)
+        self.conv4 = nn.ConvTranspose2d(in_channels=64, out_channels=3, kernel_size=2, stride=2, padding=0)
+
+    def forward(self, x):
+        y = self.relu(self.b1(self.conv1(x)))
+        y = self.res1(y)
+        y = self.res2(y)
+        y = self.res3(y)
+        y = self.res4(y)
+        y = self.relu(self.b2(self.conv2(y)))
+        y = self.relu(self.b3(self.conv3(y)))
+        return self.conv4(y)
+
+class ResidualBlock(nn.Module):
+    def __init__(self, channels):
+        super(ResidualBlock, self).__init__()
+        self.conv1 = nn.Conv2d(channels, channels, kernel_size=3, stride=1)
+        self.b1 = nn.BatchNorm2d(channels)
+        self.conv2 = nn.Conv2d(channels, channels, kernel_size=3, stride=1)
+        self.b2 = nn.BatchNorm2d(channels)
+        self.relu = nn.ReLU()
+    def forward(self, x):
+        res = x
+        out = self.relu(self.b1(self.conv1(x)))
+        out = self.b2(self.conv2(out))
+        out = out + res
+        return out

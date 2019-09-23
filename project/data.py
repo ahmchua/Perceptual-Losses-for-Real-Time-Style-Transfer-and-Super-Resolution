@@ -28,7 +28,6 @@ class MyCoco(Dataset):
     """
 
     def __init__(self, root, annFile, input_transform=None, target_transform=None, transforms=None):
-        #super(MyCoco, self).__init__(root, transforms, transform, target_transform)
         super(MyCoco, self).__init__()
         from pycocotools.coco import COCO
         self.root = root
