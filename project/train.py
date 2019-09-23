@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.optim import Adam
 import torchvision.models as models
 import numpy as np
-from models import SRCNN, loss_net
+from models import SRCNN, loss_net, SRResnet, ResidualBlock
 import os
 import torchvision.transforms as transforms
 from PIL import Image
@@ -17,7 +17,8 @@ def downsample(img, factor=4.0):
     return upsample(img, 1./factor)
 
 def train(train_params, model_params, args, train_loader, test_loader):
-    super_resolver = SRCNN().to(args.device)
+    #super_resolver = SRCNN().to(args.device)
+    super_resolver = SRResnet().to(args.device)
     feat = loss_net().to(args.device)
     feat_layer = model_params['feat_layer']
 

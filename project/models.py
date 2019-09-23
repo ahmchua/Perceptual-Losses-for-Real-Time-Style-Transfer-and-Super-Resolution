@@ -55,7 +55,7 @@ class SRResnet(nn.Module):
         self.b2 = nn.BatchNorm2d(64)
         self.conv3 = nn.ConvTranspose2d(in_channels=64, out_channels=64, kernel_size=2, stride=2, padding=0)
         self.b3 = nn.BatchNorm2d(64)
-        self.conv4 = nn.ConvTranspose2d(in_channels=64, out_channels=3, kernel_size=2, stride=2, padding=0)
+        self.conv4 = nn.ConvTranspose2d(in_channels=64, out_channels=3, kernel_size=3, stride=1, padding=1)
 
     def forward(self, x):
         y = self.relu(self.b1(self.conv1(x)))
@@ -70,9 +70,9 @@ class SRResnet(nn.Module):
 class ResidualBlock(nn.Module):
     def __init__(self, channels):
         super(ResidualBlock, self).__init__()
-        self.conv1 = nn.Conv2d(channels, channels, kernel_size=3, stride=1)
+        self.conv1 = nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1)
         self.b1 = nn.BatchNorm2d(channels)
-        self.conv2 = nn.Conv2d(channels, channels, kernel_size=3, stride=1)
+        self.conv2 = nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1)
         self.b2 = nn.BatchNorm2d(channels)
         self.relu = nn.ReLU()
     def forward(self, x):
