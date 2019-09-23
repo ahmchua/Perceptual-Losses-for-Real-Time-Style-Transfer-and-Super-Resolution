@@ -10,16 +10,17 @@ class SRCNN(nn.Module):
         self.relu2 = nn.ReLU();
         self.conv3 = nn.Conv2d(32,3,kernel_size=5,padding=2);
         self.upsample = nn.UpsamplingBilinear2d((256, 256))
-        
+
     def forward(self,x):
-        out = self.upsample(x.unsqueeze(0))
+        #out = x
+        out = self.upsample(x)
         out = self.conv1(out)
         out = self.relu1(out)
         out = self.conv2(out)
         out = self.relu2(out)
         out = self.conv3(out)
 
-        return 
+        return out
 
 class loss_net(nn.Module):
     def __init__(self):
@@ -34,7 +35,6 @@ class loss_net(nn.Module):
 
     def forward(self, x):
         out = {}
-        print(f"IN LOSS: {x.shape}")
         for name, module in self.vgg._modules.items():
             x = module(x)
             if name in self.layer_map:

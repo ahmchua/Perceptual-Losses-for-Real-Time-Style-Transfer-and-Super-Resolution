@@ -1,8 +1,17 @@
 #from torchvision.vision import VisionDataset
 from torch.utils.data import Dataset
+import torchvision.transforms as transforms
+from torchvision.transforms import Resize, ToTensor
 from PIL import Image
 import os
 import os.path
+
+def upsample(img, factor):
+    w, h = img.size
+    return img.resize((int(w*factor), int(h*factor)))
+
+def downsample(img, factor=4.0):
+    return upsample(img, 1./factor)
 
 class MyCoco(Dataset):
     """`MS Coco Detection <http://mscoco.org/dataset/#detections-challenge2016>`_ Dataset.
@@ -18,12 +27,16 @@ class MyCoco(Dataset):
             and returns a transformed version.
     """
 
-    def __init__(self, root, annFile, transform=None, target_transform=None, transforms=None):
+    def __init__(self, root, annFile, input_transform=None, target_transform=None, transforms=None):
+        #super(MyCoco, self).__init__(root, transforms, transform, target_transform)
         super(MyCoco, self).__init__()
         from pycocotools.coco import COCO
+        self.root = root
+        self.transforms = transforms
+        self.input_transform = input_transform
+        self.target_transform = target_transform
         self.coco = COCO(annFile)
         self.ids = list(sorted(self.coco.imgs.keys()))
-        self.transforms = transforms
 
     def __getitem__(self, index):
         """
@@ -37,15 +50,21 @@ class MyCoco(Dataset):
         img_id = self.ids[index]
         ann_ids = coco.getAnnIds(imgIds=img_id)
         target = coco.loadAnns(ann_ids)
+        img_to_tensor = ToTensor()
 
         path = coco.loadImgs(img_id)[0]['file_name']
 
         img = Image.open(os.path.join(self.root, path)).convert('RGB')
-        small_img = img
-        if self.transforms is not None:
-            small_img = self.transforms(img)
+        target = img.copy()
 
-        return small_img, img
+        if self.input_transform:
+            input = self.input_transform(img)
+
+        if self.target_transform:
+            target = self.target_transform(target)
+
+        return input, target
+
 
     def __len__(self):
         return len(self.ids)

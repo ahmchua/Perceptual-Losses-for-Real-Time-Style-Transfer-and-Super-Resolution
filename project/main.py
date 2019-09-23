@@ -3,15 +3,24 @@ import os
 import torch
 import sys
 import torchvision.datasets as dataset
-
+import torchvision.transforms as transforms
+from torchvision.transforms import Resize, ToTensor
+from torch.utils.data import DataLoader
 from train import train
 from data import MyCoco
 from models import *
 
+def upsample(img, factor):
+    w, h = img.size
+    return img.resize((int(w*factor), int(h*factor)))
+
+def downsample(img, factor=4.0):
+    return upsample(img, 1./factor)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--train_images", default=os.path.join("..", "data", "train2017"), help="The relative path to the validation data directory")
-    parser.add_argument("--train_annotation", default=os.path.join("..", "data", "annotations", "instances_train2017.json"), help="The relative path to the validation data directory")
+    parser.add_argument("--train_images", default=os.path.join("..", "data", "val2017"), help="The relative path to the validation data directory")
+    parser.add_argument("--train_annotation", default=os.path.join("..", "data", "annotations", "instances_val2017.json"), help="The relative path to the validation data directory")
     parser.add_argument("--test_images", default=os.path.join("..", "data", "val2017"), help="The relative path to the validation data directory")
     parser.add_argument("--batch_size", default= 16, type=int, help="The batch size for training")
     parser.add_argument("--model_params", type=str, default=os.path.join("params", "model_conv.json"), help="Path to json file with model parameters")
@@ -40,6 +49,14 @@ if __name__ == '__main__':
     #train_loader = DataLoader(train_dataset, shuffle=True, batch_size=train_params['batch_size'])
     #test_loader = DataLoader(test_dataset, shuffle=True, batch_size=train_params['batch_size'])
 
-    train_params = {'epochs': 1, 'lr':0.001}
+
+    train_params = {'epochs': 1, 'lr':0.001, 'batch_size':4}
     model_params = {'feat_layer':'relu2_2'}
-    train(train_params, model_params, args, train_loader=None, test_loader=None)
+
+    target_transform = transforms.Compose([Resize((256,256)), ToTensor()])
+    input_transform = transforms.Compose([Resize((256,256)), downsample, ToTensor()])
+
+    train_dataset = MyCoco(root = args.train_images, annFile = args.train_annotation, input_transform=input_transform, target_transform=target_transform)
+    train_loader = DataLoader(train_dataset, shuffle=True, batch_size=train_params['batch_size'])
+
+    train(train_params, model_params, args, train_loader, test_loader=None)
