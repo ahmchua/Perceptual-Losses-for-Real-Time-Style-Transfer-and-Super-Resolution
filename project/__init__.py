@@ -1,4 +1,5 @@
 import torch
+from .models import SRCNN, SRResnet
     
 def superresolve(img, seed=2019):
     """
@@ -14,5 +15,11 @@ def superresolve(img, seed=2019):
     >>> img = superresolve(img, 4)
     >>> (256,256,3)
     """
+    path = f"./srresnet_20epochs.pth"
+    #model = SRResnet()
+    model = SRCNN()
+    model.load_state_dict(torch.load(path))
+    pred = model(torch.Tensor(img).unsqueeze(0))
+    return pred.squeeze(0).transpose(0, 2).numpy()
     
-    raise NotImplemented("superresolve")
+    

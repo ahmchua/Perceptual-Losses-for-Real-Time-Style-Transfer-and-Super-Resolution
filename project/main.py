@@ -50,7 +50,7 @@ if __name__ == '__main__':
     #test_loader = DataLoader(test_dataset, shuffle=True, batch_size=train_params['batch_size'])
 
 
-    train_params = {'epochs': 1, 'lr':0.001, 'batch_size':4}
+    train_params = {'epochs': 20, 'lr':0.001, 'batch_size': 64}
     model_params = {'feat_layer':'relu2_2'}
 
     target_transform = transforms.Compose([Resize((256,256)), ToTensor()])
