@@ -1,9 +1,11 @@
 import torch
+import os
+import logging
 import torch.nn as nn
 from torch.optim import Adam
 import torchvision.models as models
 import numpy as np
-from models import SRCNN, loss_net, SRResnet, ResidualBlock
+from models import SRCNN, loss_net, SRResnet, ResidualBlock, SRResnet2
 import os
 import torchvision.transforms as transforms
 from PIL import Image
@@ -18,14 +20,16 @@ def downsample(img, factor=4.0):
 
 def train(train_params, model_params, args, train_loader, test_loader):
     #super_resolver = SRCNN().to(args.device)
-    super_resolver = SRResnet().to(args.device)
+    #super_resolver = SRResnet().to(args.device)
+    super_resolver = SRResnet2().to(args.device)
     feat = loss_net().to(args.device)
     feat_layer = model_params['feat_layer']
 
     optimizer = Adam(super_resolver.parameters(), lr = train_params['lr'])
     mse_loss = nn.MSELoss()
     transform_batch = transforms.Compose([downsample, ToTensor()])
-
+    path = "./checkpoints/"
+    os.mkdir(path)
 
     for epoch in range(train_params['epochs']):
         super_resolver.train()
@@ -34,6 +38,10 @@ def train(train_params, model_params, args, train_loader, test_loader):
         for batch_num, (sample_x, sample_y) in enumerate(train_loader):
 
             optimizer.zero_grad()
+
+            if torch.cuda.is_available():
+                sample_x = sample_x.to('cuda')
+                sample_y = sample_y.to('cuda')
 
             pred = super_resolver(sample_x)
             f_hat = feat(pred)[feat_layer]
@@ -49,5 +57,9 @@ def train(train_params, model_params, args, train_loader, test_loader):
             loss.backward()
             optimizer.step()
 
-        print(f"epoch loss: {epoch_loss}")
+        print(f"Epoch {epoch}: {epoch_loss}")
+        
+        if epoch % 10 == 0:
+            torch.save(super_resolver.state_dict(), path + f"srresnet2_{epoch}.pth")
+
     return super_resolver
