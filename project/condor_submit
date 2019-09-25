@@ -1,0 +1,24 @@
+universe = vanilla
+Executable = /lusr/bin/bash
++Group   = "GRAD"
++Project = "INSTRUCTIONAL"
++ProjectDescription = "Deep Learning HW2"
+Requirements = TARGET.GPUSlot && InMastodon
+getenv = True
+request_GPUs = 1
++GPUJob = true
+Notification = complete
+Notify_user = abbychua@cs.utexas.edu
+Initialdir = /u/abbychua/dl-hw2
+
+Log = /u/abbychua/dl-hw2/srresnet.log
+Error = /u/abbychua/dl-hw2/srresnet.err
+Output = /u/abbychua/dl-hw2/srrestnet.out
+Arguments = run.sh --epochs 100 --model srresnet
+Queue 1
+
+Log = /u/abbychua/dl-hw2/srresnet2.log
+Error = /u/abbychua/dl-hw2/srresnet2.err
+Output = /u/abbychua/dl-hw2/srrestnet2.out
+Arguments = run.sh --epochs 100 --model srresnet2
+Queue 1
