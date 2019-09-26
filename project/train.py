@@ -54,13 +54,18 @@ def train(train_params, model_params, args, train_loader, test_loader):
             f_hat = feat(pred)[feat_layer]
             f_gold = feat(sample_y)[feat_layer]
 
+            l1_loss = l1loss(pred, sample_y)
             C_j = f_gold.shape[0]
             H_j = f_gold.shape[1]
             W_j = f_gold.shape[2]
-            loss = (
-                    train_params['percep_weight']*(1/(C_j*H_j*W_j) * torch.dist(f_hat, f_gold, p=2))
-                    + train_params['l1_weight']*l1loss(pred, sample_y)
-                    )
+            if args.percep_loss == "l2":
+                percep_loss = 1/(C_j*H_j*W_j) * torch.dist(f_hat, f_gold, p=2)
+
+            elif args.percep_loss == "mse":
+                percep_loss = 1/(C_j*H_j*W_j) * mse_loss(f_hat, f_gold)
+
+            loss = train_params['percep_weight']*percep_loss + train_params['l1_weight']*l1_loss
+
             epoch_loss += loss.item()
 
             loss.backward()
@@ -69,6 +74,6 @@ def train(train_params, model_params, args, train_loader, test_loader):
         print(f"Epoch {epoch}: {epoch_loss}")
 
         if epoch % 10 == 0:
-            torch.save(super_resolver.state_dict(), path + f"srcnn_l2_noise_{epoch}.pth")
+            torch.save(super_resolver.state_dict(), path + args.model_name+f"_{epoch}.pth")
 
     return super_resolver

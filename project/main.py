@@ -25,6 +25,9 @@ if __name__ == '__main__':
     parser.add_argument("--noise_factor", type=float, default=0.0, help="Number of epochs to train")
     parser.add_argument("--percep_weight", type=float, default=1.0, help="Weighting of Perceptual Loss")
     parser.add_argument("--l1_weight", type=float, default=1.0, help="Weighting of L1 Loss")
+    parser.add_argument("--model_name", type=str, default="srcnn", help="Weighting of L1 Loss")
+    parser.add_argument("--percep_loss", type=str, default="l2", help="Type of perceptual loss")
+    parser.add_argument("--lr", type=float, default=1.0, help="Learning Rate")
 
 
 
@@ -35,7 +38,7 @@ if __name__ == '__main__':
     else:
         args.device = torch.device('cpu')
 
-    train_params = {'epochs': args.epochs, 'lr':0.001, 'batch_size': 8, 'pin_memory':True, 'noise_factor':args.noise_factor, 'percep_weight':args.percep_weight, 'l1_weight':args.l1_weight}
+    train_params = {'epochs': args.epochs, 'lr':args.lr, 'batch_size': 8, 'pin_memory':True, 'noise_factor':args.noise_factor, 'percep_weight':args.percep_weight, 'l1_weight':args.l1_weight}
     model_params = {'feat_layer':'relu2_2'}
 
     print(f"ARGUMENTS: {args}\n")
