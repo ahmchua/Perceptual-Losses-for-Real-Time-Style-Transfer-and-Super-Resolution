@@ -51,19 +51,41 @@ def train(train_params, model_params, args, train_loader, test_loader):
                 sample_y = sample_y.to('cuda')
 
             pred = super_resolver(sample_x)
-            f_hat = feat(pred)[feat_layer]
-            f_gold = feat(sample_y)[feat_layer]
+            f_hat = feat(pred)
+            f_gold = feat(sample_y)
 
             l1_loss = l1loss(pred, sample_y)
-            C_j = f_gold.shape[0]
-            H_j = f_gold.shape[1]
-            W_j = f_gold.shape[2]
-            if args.percep_loss == "l2":
-                percep_loss = 1/(C_j*H_j*W_j) * torch.dist(f_hat, f_gold, p=2)
 
-            elif args.percep_loss == "mse":
-                percep_loss = 1/(C_j*H_j*W_j) * mse_loss(f_hat, f_gold)
+            # Extract loss from a single layer
+            if args.percep_loss == "l2_single":
+                pred = f_hat[feat_layer]
+                gold = f_gold[feat_layer]
+                C_j = gold.shape[1]
+                H_j = gold.shape[2]
+                W_j = gold.shape[3]
+                percep_loss = 1/(C_j*H_j*W_j)*torch.dist(pred, gold, p=2)
+            elif args.percep_loss == "mse_single":
+                pred = f_hat[feat_layer]
+                gold = f_gold[feat_layer]
+                percep_loss = mse_loss(pred, gold)
+            elif args.percep_loss == "l2_multi":
+                percep_loss = 0.0
+                for name in f_hat:
+                    pred = f_hat[name]
+                    gold = f_gold[name]
+                    C_j = gold.shape[1]
+                    H_j = gold.shape[2]
+                    W_j = gold.shape[3]
+                    percep_loss += 1/(C_j*H_j*W_j) * torch.dist(pred, gold, p=2)
+            elif args.percep_loss == "mse_multi":
+                percep_loss = 0.0
+                for name in f_hat:
+                    pred = f_hat[name]
+                    gold = f_gold[name]
+                    percep_loss += mse_loss(pred, gold)
 
+            print(f"percep loss: {percep_loss}")
+            print(f"l1 loss: {l1_loss}")
             loss = train_params['percep_weight']*percep_loss + train_params['l1_weight']*l1_loss
 
             epoch_loss += loss.item()

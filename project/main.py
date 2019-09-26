@@ -26,8 +26,8 @@ if __name__ == '__main__':
     parser.add_argument("--percep_weight", type=float, default=1.0, help="Weighting of Perceptual Loss")
     parser.add_argument("--l1_weight", type=float, default=1.0, help="Weighting of L1 Loss")
     parser.add_argument("--model_name", type=str, default="srcnn", help="Weighting of L1 Loss")
-    parser.add_argument("--percep_loss", type=str, default="l2", help="Type of perceptual loss")
-    parser.add_argument("--lr", type=float, default=1.0, help="Learning Rate")
+    parser.add_argument("--percep_loss", type=str, default="l2_single", help="Type of perceptual loss")
+    parser.add_argument("--lr", type=float, default=0.001, help="Learning Rate")
 
 
 

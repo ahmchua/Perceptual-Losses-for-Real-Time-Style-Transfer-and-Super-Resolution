@@ -27,10 +27,10 @@ class loss_net(nn.Module):
         super(loss_net, self).__init__()
         self.vgg = models.vgg16(pretrained=True).features
         self.layer_map = {
-        #"3":"relu1_2",
-        "8":"relu2_2"
-        #"15":"relu3_3",
-        #"22":"relu4_3"
+        "3":"relu1_2",
+        "8":"relu2_2",
+        "15":"relu3_3",
+        "22":"relu4_3"
         }
         for param in self.vgg.parameters():
             param.requires_grad = False
