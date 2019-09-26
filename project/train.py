@@ -5,11 +5,11 @@ import torch.nn as nn
 from torch.optim import Adam
 import torchvision.models as models
 import numpy as np
-from models import SRCNN, loss_net, SRResnet, ResidualBlock, SRResnet2
 import os
 import torchvision.transforms as transforms
 from PIL import Image
 from torchvision.transforms import Resize, ToTensor
+from models import *
 
 def upsample(img, factor):
     w, h = img.size
@@ -19,24 +19,31 @@ def downsample(img, factor=4.0):
     return upsample(img, 1./factor)
 
 def train(train_params, model_params, args, train_loader, test_loader):
-    #super_resolver = SRCNN().to(args.device)
-    #super_resolver = SRResnet().to(args.device)
-    super_resolver = SRResnet2().to(args.device)
+    #if args.model_type == "srcnn":
+    super_resolver = SRCNN().to(args.device)
+    #elif args.model_type == "srres":
+    #    super_resolver = SRResnet().to(args.device)
+    #elif args.model_type == "srres2":
+    #    super_resolver = SRResnet2().to(args.device)
     feat = loss_net().to(args.device)
     feat_layer = model_params['feat_layer']
+    l1loss = nn.L1Loss()
 
     optimizer = Adam(super_resolver.parameters(), lr = train_params['lr'])
     mse_loss = nn.MSELoss()
     transform_batch = transforms.Compose([downsample, ToTensor()])
-    path = "./checkpoints/"
-    os.mkdir(path)
-
+    path = "./model_checkpoints/"
+    try:
+      os.mkdir(path)
+    except:
+      pass
     for epoch in range(train_params['epochs']):
         super_resolver.train()
         epoch_loss = 0
 
         for batch_num, (sample_x, sample_y) in enumerate(train_loader):
-
+            #if batch_num%25 == 0:
+              #print(f"batch_num: {batch_num}")
             optimizer.zero_grad()
 
             if torch.cuda.is_available():
@@ -50,16 +57,18 @@ def train(train_params, model_params, args, train_loader, test_loader):
             C_j = f_gold.shape[0]
             H_j = f_gold.shape[1]
             W_j = f_gold.shape[2]
-            loss = 1/(C_j*H_j*W_j) * mse_loss(f_hat, f_gold)
-            loss = loss.to(args.device)
+            loss = (
+                    train_params['percep_weight']*(1/(C_j*H_j*W_j) * torch.dist(f_hat, f_gold, p=2))
+                    + train_params['l1_weight']*l1loss(pred, sample_y)
+                    )
             epoch_loss += loss.item()
 
             loss.backward()
             optimizer.step()
 
         print(f"Epoch {epoch}: {epoch_loss}")
-        
+
         if epoch % 10 == 0:
-            torch.save(super_resolver.state_dict(), path + f"srresnet2_{epoch}.pth")
+            torch.save(super_resolver.state_dict(), path + f"srcnn_l2_noise_{epoch}.pth")
 
     return super_resolver

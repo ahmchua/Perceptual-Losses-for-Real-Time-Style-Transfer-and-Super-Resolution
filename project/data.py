@@ -27,13 +27,14 @@ class MyCoco(Dataset):
             and returns a transformed version.
     """
 
-    def __init__(self, root, annFile, input_transform=None, target_transform=None, transforms=None):
+    def __init__(self, root, annFile, noise_factor=0, input_transform=None, target_transform=None, transforms=None):
         super(MyCoco, self).__init__()
         from pycocotools.coco import COCO
         self.root = root
         self.transforms = transforms
         self.input_transform = input_transform
         self.target_transform = target_transform
+        self.noise_factor = noise_factor
         self.coco = COCO(annFile)
         self.ids = list(sorted(self.coco.imgs.keys()))
 
@@ -58,6 +59,11 @@ class MyCoco(Dataset):
 
         if self.input_transform:
             input = self.input_transform(img)
+
+        if self.noise_factor>0:
+            add_noise = Lambda(lambda x: x + (torch.randn_like(x) * self.noise_factor))
+            noisy_img = add_noise(input)
+            input = noisy_img
 
         if self.target_transform:
             target = self.target_transform(target)

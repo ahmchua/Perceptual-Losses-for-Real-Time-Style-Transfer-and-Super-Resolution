@@ -28,10 +28,12 @@ class loss_net(nn.Module):
         self.vgg = models.vgg16(pretrained=True).features
         self.layer_map = {
         #"3":"relu1_2",
-        "8":"relu2_2",
+        "8":"relu2_2"
         #"15":"relu3_3",
         #"22":"relu4_3"
         }
+        for param in self.vgg.parameters():
+            param.requires_grad = False
 
     def normalize(self, batch):
         # normalize using imagenet mean and std
@@ -41,7 +43,7 @@ class loss_net(nn.Module):
         return (batch - mean) / std
 
     def forward(self, x):
-        x = self.normalize(x)
+        #x = self.normalize(x)
         out = {}
         for name, module in self.vgg._modules.items():
             x = module(x)
@@ -79,9 +81,9 @@ class ResidualBlock(nn.Module):
     def __init__(self, channels):
         super(ResidualBlock, self).__init__()
         self.conv1 = nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1)
-        self.b1 = nn.BatchNorm2d(channels)
+        self.b1 = nn.InstanceNorm2d(channels)
         self.conv2 = nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1)
-        self.b2 = nn.BatchNorm2d(channels)
+        self.b2 = nn.InstanceNorm2d(channels)
         self.relu = nn.ReLU()
     def forward(self, x):
         res = x
