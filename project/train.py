@@ -28,6 +28,7 @@ def train(train_params, model_params, args, train_loader, test_loader):
     feat = loss_net().to(args.device)
     feat_layer = model_params['feat_layer']
     l1loss = nn.L1Loss()
+    l1loss_low_res = nn.L1Loss()
 
     optimizer = Adam(super_resolver.parameters(), lr = train_params['lr'])
     mse_loss = nn.MSELoss()
@@ -50,13 +51,18 @@ def train(train_params, model_params, args, train_loader, test_loader):
                 sample_x = sample_x.to('cuda')
                 sample_y = sample_y.to('cuda')
 
+            #pred, low_res_pred = super_resolver(sample_x)
             pred = super_resolver(sample_x)
             f_hat = feat(pred)
             f_gold = feat(sample_y)
 
+            # L1 HIGH RES LOSS
             l1_loss = l1loss(pred, sample_y)
 
-            # Extract loss from a single layer
+            # L1 LOW RES LOSS
+            #l1_low_res_loss = l1loss_low_res(low_res_pred, sample_x)
+
+            # PERCEPTUAL LOSS
             if args.percep_loss == "l2_single":
                 pred = f_hat[feat_layer]
                 gold = f_gold[feat_layer]
@@ -84,9 +90,16 @@ def train(train_params, model_params, args, train_loader, test_loader):
                     gold = f_gold[name]
                     percep_loss += mse_loss(pred, gold)
 
-            print(f"percep loss: {percep_loss}")
-            print(f"l1 loss: {l1_loss}")
-            loss = train_params['percep_weight']*percep_loss + train_params['l1_weight']*l1_loss
+            '''loss = (
+                    train_params['percep_weight']*percep_loss
+                    + train_params['l1_weight']*l1_loss
+                    + train_params['l1_low_res_weight']*l1_low_res_loss
+                    )'''
+            loss = (
+                    train_params['percep_weight']*percep_loss
+                    + train_params['l1_weight']*l1_loss)
+
+            # L1
 
             epoch_loss += loss.item()
 
@@ -96,6 +109,11 @@ def train(train_params, model_params, args, train_loader, test_loader):
         print(f"Epoch {epoch}: {epoch_loss}")
 
         if epoch % 10 == 0:
-            torch.save(super_resolver.state_dict(), path + args.model_name+f"_{epoch}.pth")
+            torch.save({
+            'epoch': epoch,
+            'model_state_dict': super_resolver.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'loss': loss
+            }, path + args.model_name+f"_{epoch}.pth")
 
     return super_resolver

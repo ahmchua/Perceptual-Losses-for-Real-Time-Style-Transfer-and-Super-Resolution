@@ -9,17 +9,38 @@ class SRCNN(nn.Module):
         self.conv2 = nn.Conv2d(64,32,kernel_size=1,padding=0);
         self.relu2 = nn.ReLU();
         self.conv3 = nn.Conv2d(32,3,kernel_size=5,padding=2);
-        self.upsample = nn.UpsamplingBilinear2d((256, 256))
 
     def forward(self,x):
         #out = x
-        out = self.upsample(x)
+        out = nn.functional.interpolate(x, mode='bicubic', scale_factor=4.0)
+        #out = self.upsample(x)
         out = self.conv1(out)
         out = self.relu1(out)
         out = self.conv2(out)
         out = self.relu2(out)
         out = self.conv3(out)
+        out_low_res = nn.functional.interpolate(out, mode='bilinear', size=(x.shape[2], x.shape[3]))
 
+        return out #, out_low_res
+
+class SRCNN2(nn.Module):
+    def __init__(self):
+        super(SRCNN2, self).__init__()
+        self.conv1 = nn.Conv2d(3,64,kernel_size=9,padding=4)
+        self.relu1 = nn.ReLU()
+        self.conv2 = nn.Conv2d(64,128,kernel_size=5,padding=2)
+        self.relu2 = nn.ReLU()
+        self.conv3 = nn.Conv2d(128,32,kernel_size=1,padding=0)
+        self.relu3 = nn.ReLU()
+        self.conv4 = nn.Conv2d(32,3,kernel_size=5,padding=2)
+
+    def forward(self,x):
+        #out = x
+        out = nn.functional.interpolate(x, mode='bicubic', scale_factor=4.0)
+        out = self.relu1(self.conv1(out))
+        out = self.relu2(self.conv2(out))
+        out = self.relu3(self.conv3(out))
+        out = self.conv4(out)
         return out
 
 class loss_net(nn.Module):
