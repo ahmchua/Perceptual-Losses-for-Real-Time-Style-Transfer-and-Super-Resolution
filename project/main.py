@@ -56,7 +56,7 @@ if __name__ == '__main__':
         target_transform=target_transform
     )
 
-    lengths = (int(0.1*len(train_dataset_og)), int(0.9*len(train_dataset_og)))
+    lengths = (int(0.2*len(train_dataset_og)), int(0.8*len(train_dataset_og)))
     train_dataset, val_dataset = torch.utils.data.random_split(train_dataset_og, lengths)
     train_loader = DataLoader(train_dataset, shuffle=True, batch_size=train_params['batch_size'], pin_memory=train_params['pin_memory'])
 
