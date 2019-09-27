@@ -19,29 +19,60 @@ class SRCNN(nn.Module):
         out = self.conv2(out)
         out = self.relu2(out)
         out = self.conv3(out)
-        out_low_res = nn.functional.interpolate(out, mode='bilinear', size=(x.shape[2], x.shape[3]))
-
-        return out #, out_low_res
+        return out
 
 class SRCNN2(nn.Module):
     def __init__(self):
         super(SRCNN2, self).__init__()
         self.conv1 = nn.Conv2d(3,64,kernel_size=9,padding=4)
-        self.relu1 = nn.ReLU()
-        self.conv2 = nn.Conv2d(64,128,kernel_size=5,padding=2)
-        self.relu2 = nn.ReLU()
-        self.conv3 = nn.Conv2d(128,32,kernel_size=1,padding=0)
-        self.relu3 = nn.ReLU()
-        self.conv4 = nn.Conv2d(32,3,kernel_size=5,padding=2)
+        self.relu1 = nn.LeakyReLU()
+        self.conv2 = nn.Conv2d(64,32,kernel_size=1,padding=0)
+        self.relu2 = nn.LeakyReLU()
+        self.conv3 = nn.Conv2d(32,3,kernel_size=5,padding=2)
 
     def forward(self,x):
-        #out = x
         out = nn.functional.interpolate(x, mode='bicubic', scale_factor=4.0)
-        out = self.relu1(self.conv1(out))
-        out = self.relu2(self.conv2(out))
-        out = self.relu3(self.conv3(out))
-        out = self.conv4(out)
+        out = self.conv1(out)
+        out = self.relu1(out)
+        out = self.conv2(out)
+        out = self.relu2(out)
+        out = self.conv3(out)
         return out
+
+class FSRCNN(nn.Module):
+    def __init__(self):
+        super(FSRCNN, self).__init__()
+        # First Part
+        self.conv1 = nn.Conv2d(3,56,kernel_size=5,padding=0)
+        self.prelu1 = nn.PReLU()
+        # Middle Part Start
+        self.conv2 = nn.Conv2d(56,16,kernel_size=1,padding=0)
+        self.prelu2 = nn.PReLU()
+        # m Part
+        self.conv3 = nn.Conv2d(16,16,kernel_size=3,padding=1)
+        self.prelu3 = nn.PReLU()
+        self.conv4 = nn.Conv2d(16,16,kernel_size=3,padding=1)
+        self.prelu4 = nn.PReLU()
+        self.conv4 = nn.Conv2d(16,16,kernel_size=3,padding=1)
+        self.prelu4 = nn.PReLU()
+        self.conv4 = nn.Conv2d(16,16,kernel_size=3,padding=1)
+        self.prelu4 = nn.PReLU()
+        # Middle Part End
+        self.conv5 = nn.Conv2d(16,56,kernel_size=1,padding=0)
+        self.prelu5 = nn.PReLU()
+        # Last Part
+        self.conv6 = nn.ConvTranspose2d(56,3,kernel_size=9, stride=4, padding=3)
+
+    def forward(self, x):
+        out = self.prelu1(self.conv1(x))
+        out = self.prelu2(self.conv2(out))
+        out = self.prelu3(self.conv3(out))
+        out = self.prelu4(self.conv4(out))
+        out = self.prelu5(self.conv5(out))
+        out = self.conv6(out)
+        out = nn.functional.interpolate(out, mode='bicubic', size=(256, 256))
+        return out
+
 
 class loss_net(nn.Module):
     def __init__(self):

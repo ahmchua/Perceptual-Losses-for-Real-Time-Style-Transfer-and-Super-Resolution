@@ -29,6 +29,7 @@ if __name__ == '__main__':
     parser.add_argument("--model_name", type=str, default="srcnn", help="Weighting of L1 Loss")
     parser.add_argument("--percep_loss", type=str, default="l2_multi", help="Type of perceptual loss")
     parser.add_argument("--lr", type=float, default=0.001, help="Learning Rate")
+    parser.add_argument("--model_type", type=str, default="srcnn", help="Model type")
 
 
 
@@ -43,7 +44,7 @@ if __name__ == '__main__':
         'epochs': args.epochs,
         'lr':args.lr,
         'batch_size': 8,
-        'pin_memory':True,
+        'pin_memory':False,
         'noise_factor':args.noise_factor,
         'percep_weight':args.percep_weight,
         'l1_weight':args.l1_weight,
@@ -66,7 +67,7 @@ if __name__ == '__main__':
         target_transform=target_transform
     )
 
-    lengths = (int(0.2*len(train_dataset_og)), int(0.8*len(train_dataset_og)))
+    lengths = (int(0.1*len(train_dataset_og)), int(0.9*len(train_dataset_og)))
     train_dataset, val_dataset = torch.utils.data.random_split(train_dataset_og, lengths)
     train_loader = DataLoader(train_dataset, shuffle=True, batch_size=train_params['batch_size'], pin_memory=train_params['pin_memory'])
 

@@ -20,7 +20,9 @@ def downsample(img, factor=4.0):
 
 def train(train_params, model_params, args, train_loader, test_loader):
     #if args.model_type == "srcnn":
-    super_resolver = SRCNN().to(args.device)
+    #super_resolver = SRCNN2().to(args.device)
+    #elif args.model_type == "fsrcnn":
+    super_resolver = FSRCNN().to(args.device)
     #elif args.model_type == "srres":
     #    super_resolver = SRResnet().to(args.device)
     #elif args.model_type == "srres2":
@@ -57,7 +59,8 @@ def train(train_params, model_params, args, train_loader, test_loader):
             f_gold = feat(sample_y)
 
             # L1 HIGH RES LOSS
-            l1_loss = l1loss(pred, sample_y)
+            #l1_loss = l1loss(pred, sample_y)
+            l1_loss = mse_loss(pred, sample_y)
 
             # L1 LOW RES LOSS
             #l1_low_res_loss = l1loss_low_res(low_res_pred, sample_x)
